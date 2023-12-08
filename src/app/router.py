@@ -11,17 +11,20 @@ router = APIRouter(
     tags=["trade_point"]
 )
 
+
+# Task 1
 @router.get("/{phone}")
 async def trade_point_list(phone:str, session: Session = Depends(get_db)):
-    worker = session.query(Worker).filter(Worker.phone == phone).first()
-
-    if not worker:
-        raise HTTPException(status_code=404, detail="worker not found")
-
-    trade_points = session.query(TradePoint).filter(TradePoint.id == worker.trade_point_id).all()
-    return {
-        "status": 200, 
-        "data": trade_points, 
-        "detail": None
-        }
-
+    try:
+        worker = session.query(Worker).filter(Worker.phone == phone).first()
+        if worker:
+            trade_points = session.query(TradePoint).filter(TradePoint.workers == worker.id).order_by(TradePoint.name).all()
+            return {
+                "status": 200, 
+                "data": trade_points, 
+                "detail": None
+                }
+        else:
+            raise HTTPException(status_code=404, detail="worker not found")
+    except:
+        raise HTTPException(status_code=500, detail="there is the exception")
