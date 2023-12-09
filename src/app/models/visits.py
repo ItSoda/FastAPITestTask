@@ -1,6 +1,6 @@
 from datetime import datetime
 from sqlalchemy import  Column, Integer, ForeignKey, DateTime
-
+from sqlalchemy.orm import relationship
 from src.database import Base
 
 
@@ -13,3 +13,5 @@ class Visit(Base):
     author_id = Column(Integer, ForeignKey("customer.id"), nullable=False)
     order_id = Column(Integer, ForeignKey("order.id"), nullable=False)
     worker_id = Column(Integer, ForeignKey("worker.id"), nullable=False)
+
+    order = relationship("Order", back_populates="visits")
