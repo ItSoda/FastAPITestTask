@@ -21,9 +21,18 @@ class OrderList(BaseModel):
     author_id: int
     status: OrderType
 
-
 class OrderUpdate(BaseModel):
-    id: Optional[int] = None
+    end_datetime: datetime
+    destination_id: int
+    worker_id: int
+    status: OrderType
+
+
+class OrderUpdateStatus(BaseModel):
+    status: OrderType
+
+
+class OrderPartialUpdate(BaseModel):
     created_datetime: Optional[str] = None
     end_datetime: Optional[str] = None
     destination_id: Optional[int] = None
@@ -31,8 +40,8 @@ class OrderUpdate(BaseModel):
     status: Optional[str] = None
 
 
+
 class OrderCreate(BaseModel):
-    id: int
     destination_id: int
     worker_id: int
     status: OrderType

@@ -12,13 +12,13 @@ from src.app.models.trade_point import TradePoint
 fake = Faker()
 
 def create_entities(db_session: Session):
-    for _ in range(100):
+    for _ in range(1000):
         trade_point = TradePoint(name=fake.name())
         db_session.add(trade_point)
 
     db_session.commit()
 
-    for _ in range(200):
+    for _ in range(100):
         random_trade_point = db_session.query(TradePoint).order_by(func.random()).first()
         worker = Worker(name=fake.name(), phone=fake.phone_number(), trade_point_id=random_trade_point.id)
         db_session.add(worker)
@@ -74,3 +74,10 @@ if __name__ == "__main__":
 
     with SessionLocal() as db:
         create_entities(db)
+
+# {
+#     "destination_id": 75,
+#     "status": "ended",
+#     "end_datetime": "2023-12-10T21:00:59",
+#     "worker_id": 43
+# } 511
