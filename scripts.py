@@ -1,9 +1,7 @@
-from fastapi import Depends
-from sqlalchemy import create_engine
+from sqlalchemy import func
 from sqlalchemy.orm import sessionmaker, Session
 from faker import Faker
 import random
-from src.config import DB_HOST, DB_NAME, DB_PASSWORD, DB_PORT, DB_USER
 from src.app.models.orders import Order, OrderStatus
 from src.app.models.visits import Visit
 from src.database import engine
@@ -13,51 +11,59 @@ from src.app.models.trade_point import TradePoint
 
 fake = Faker()
 
-
-def create_entities(db_session):
-    for _ in range(500):
-        worker = Worker(
-            name=fake.name(),
-            phone=fake.phone_number(),
-
-        )
-        db_session.add(worker)
-
-    for _ in range(15):
-        customer = Customer(
-            name=fake.name(),
-            phone=fake.phone_number(),
-
-        )
-        db_session.add(customer)
-
-    for _ in range(10000):
-        trade_point = TradePoint(
-            name=fake.name(),
-            workers=random.randint(1, 499),
-            customers=random.randint(16, 30)
-        )
+def create_entities(db_session: Session):
+    for _ in range(100):
+        trade_point = TradePoint(name=fake.name())
         db_session.add(trade_point)
 
+    db_session.commit()
+
+    for _ in range(200):
+        random_trade_point = db_session.query(TradePoint).order_by(func.random()).first()
+        worker = Worker(name=fake.name(), phone=fake.phone_number(), trade_point_id=random_trade_point.id)
+        db_session.add(worker)
+
+    for _ in range(100):
+        random_trade_point = db_session.query(TradePoint).order_by(func.random()).first()
+        customer = Customer(name=fake.name(), phone=fake.phone_number(), trade_point_id=random_trade_point.id)
+        db_session.add(customer)
+
+    db_session.commit()
 
     for _ in range(500):
+        random_worker = db_session.query(Worker).order_by(func.random()).first()
+        random_customer = db_session.query(Customer).order_by(func.random()).first()
+
+        common_trade_point = TradePoint(name=fake.name())
+        db_session.add(common_trade_point)
+        db_session.commit()
+
         order = Order(
             created_datetime=fake.date_time_this_decade(),
             end_datetime=fake.date_time_this_decade(),
-            destination_id=fake.random_int(min=5, max=14),
-            author_id=random.randint(16, 30),
+            destination_id=common_trade_point.id,
+            author_id=random_customer.id,
             status=random.choice(list(OrderStatus)),
-            worker_id=random.randint(5, 500),
+            worker_id=random_worker.id,
         )
         db_session.add(order)
 
+    db_session.commit()
+
     for _ in range(150):
+        random_worker = db_session.query(Worker).order_by(func.random()).first()
+        random_customer = db_session.query(Customer).order_by(func.random()).first()
+
+        common_trade_point = db_session.query(TradePoint).order_by(func.random()).first()
+
+        random_order = db_session.query(Order).order_by(func.random()).first()
+
         visit = Visit(
             created_datetime=fake.date_time_this_decade(),
-            worker_id=random.randint(5, 500),
-            order_id=fake.random_int(min=5, max=435),
-            destination_id=fake.random_int(min=5, max=14),
-            author_id=random.randint(16, 30),
+            destination_id=common_trade_point.id,
+            author_id=random_customer.id,
+            order_id=random_order.id,
+            worker_id=random_worker.id,
         )
         db_session.add(visit)
 
