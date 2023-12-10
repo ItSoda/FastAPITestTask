@@ -49,3 +49,6 @@ htmlcov
 
 # Sphinx documentation
 docs/_build/
+
+.env
+.flake8
