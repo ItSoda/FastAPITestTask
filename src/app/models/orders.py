@@ -8,6 +8,8 @@ from src.database import Base
 
 
 class OrderStatus(str, PythonEnum):
+    """Table for Order Status"""
+
     started = "started"
     ended = "ended"
     in_proccess = "in proccess"
@@ -16,6 +18,8 @@ class OrderStatus(str, PythonEnum):
 
 
 class Order(Base):
+    """Table for order"""
+
     __tablename__ = "order"
 
     id = Column(Integer, primary_key=True, index=True)
