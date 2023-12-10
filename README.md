@@ -27,7 +27,6 @@ Gunicorn: WSGI-сервер для запуска приложения - FastAPI
 2. **Set Up Docker Environment:**
    ```bash
     docker-compose up -d --build
-
 ## Access the Application:
 Open your browser and go to http://127.0.0.1:8000/ to explore the Test Task.
 
