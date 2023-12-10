@@ -9,7 +9,7 @@ from src.database import Base
 
 class OrderStatus(str, PythonEnum):
     """Table for Order Status"""
-    
+
     started = "started"
     ended = "ended"
     in_proccess = "in proccess"

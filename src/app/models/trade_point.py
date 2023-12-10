@@ -6,6 +6,7 @@ from src.database import Base
 
 class TradePoint(Base):
     """Table for TradePoint"""
+
     __tablename__ = "trade_point"
 
     id = Column(Integer, primary_key=True, index=True)

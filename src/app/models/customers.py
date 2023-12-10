@@ -3,9 +3,10 @@ from sqlalchemy.orm import relationship
 
 from src.database import Base
 
+
 class Customer(Base):
     """Table for customer"""
-    
+
     __tablename__ = "customer"
 
     id = Column(Integer, primary_key=True, index=True)

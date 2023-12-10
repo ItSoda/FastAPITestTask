@@ -9,21 +9,10 @@ from .models.orders import Order
 from .models.trade_point import TradePoint
 from .models.visits import Visit
 from .models.workers import Worker
-from .schemas import (
-    CustomerCreate,
-    CustomerPartialUpdate,
-    OrderCreate,
-    OrderPartialUpdate,
-    OrderUpdate,
-    OrderUpdateStatus,
-    TradePointCreate,
-    TradePointPartialUpdate,
-    VisitCreate,
-    VisitPartialUpdate,
-    WorkerCreate,
-    WorkerPartialUpdate,
-)
-
+from .schemas import (CustomerCreate, CustomerPartialUpdate, OrderCreate,
+                      OrderPartialUpdate, OrderUpdate, OrderUpdateStatus,
+                      TradePointCreate, TradePointPartialUpdate, VisitCreate,
+                      VisitPartialUpdate, WorkerCreate, WorkerPartialUpdate)
 
 router_trade_point = APIRouter(prefix="/trade_point", tags=["trade_point"])
 
@@ -46,6 +35,7 @@ def trade_point_list_worker(phone: str, db: Session = Depends(get_db)):
             raise HTTPException(status_code=404, detail="Worker not found")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"There is the exception {str(e)}")
+
 
 # CRUD TradePoint for admin
 @router_trade_point.get("/")
@@ -472,6 +462,7 @@ def visit_delete(visit_id: int, phone: str, db: Session = Depends(get_db)):
 # TASK ADMIN
 router_worker = APIRouter(prefix="/worker", tags=["worker"])
 
+
 # CRUD WORKER for admin
 @router_worker.get("/")
 def worker_list(phone: str, db: Session = Depends(get_db)):
@@ -568,6 +559,7 @@ def worker_list_phone(phone: str, phone_worker: str, db: Session = Depends(get_d
 
 router_customer = APIRouter(prefix="/customer", tags=["customer"])
 
+
 # CRUD Customer for admin
 @router_customer.get("/")
 def customer_list(phone: str, db: Session = Depends(get_db)):
@@ -644,5 +636,6 @@ def customer_delete(phone: str, customer_id: int, db: Session = Depends(get_db))
             raise HTTPException(status_code=404, detail="Customer_instance not found")
     else:
         raise HTTPException(status_code=404, detail="Customer not found")
+
 
 # Разбить по приложениям
