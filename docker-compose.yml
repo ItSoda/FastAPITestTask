@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:latest
+    container_name: mysql_fastapi
+    restart: always
+    environment:
+      - MYSQL_DATABASE=FastAPI_DB
+      - MYSQL_ROOT_USER=itsoda
+      - MYSQL_ROOT_PASSWORD=test_pass
+    volumes:
+      - mysql_data:/var/lib/mysql/
+
+  api:
+    build: .
+    image: fastapi
+    command:
+      - sh
+      - -c
+      - |
+        dockerize -wait tcp://mysql:3306 -timeout 60s &&
+        poetry run alembic upgrade head &&
+        poetry run python scripts.py &&
+        poetry run gunicorn src.main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind=0.0.0.0:8000 
+    environment:
+      - DOCKER_IS_RUN=True
+    ports:
+      - "8000:8000" 
+    depends_on:
+      - mysql
+    volumes:
+      - .:/itsoda
+    container_name: fastapi
+
+volumes:
+  mysql_data: null
