@@ -1,15 +1,18 @@
-from sqlalchemy import func
-from sqlalchemy.orm import sessionmaker, Session
-from faker import Faker
 import random
-from src.app.models.orders import Order, OrderStatus
-from src.app.models.visits import Visit
-from src.database import engine
-from src.app.models.workers import Worker
+
+from faker import Faker
+from sqlalchemy import func
+from sqlalchemy.orm import Session, sessionmaker
+
 from src.app.models.customers import Customer
+from src.app.models.orders import Order, OrderStatus
 from src.app.models.trade_point import TradePoint
+from src.app.models.visits import Visit
+from src.app.models.workers import Worker
+from src.database import engine
 
 fake = Faker()
+
 
 def create_entities(db_session: Session):
     for _ in range(1000):
@@ -19,13 +22,25 @@ def create_entities(db_session: Session):
     db_session.commit()
 
     for _ in range(100):
-        random_trade_point = db_session.query(TradePoint).order_by(func.random()).first()
-        worker = Worker(name=fake.name(), phone=fake.phone_number(), trade_point_id=random_trade_point.id)
+        random_trade_point = (
+            db_session.query(TradePoint).order_by(func.random()).first()
+        )
+        worker = Worker(
+            name=fake.name(),
+            phone=fake.phone_number(),
+            trade_point_id=random_trade_point.id,
+        )
         db_session.add(worker)
 
     for _ in range(100):
-        random_trade_point = db_session.query(TradePoint).order_by(func.random()).first()
-        customer = Customer(name=fake.name(), phone=fake.phone_number(), trade_point_id=random_trade_point.id)
+        random_trade_point = (
+            db_session.query(TradePoint).order_by(func.random()).first()
+        )
+        customer = Customer(
+            name=fake.name(),
+            phone=fake.phone_number(),
+            trade_point_id=random_trade_point.id,
+        )
         db_session.add(customer)
 
     db_session.commit()
@@ -54,7 +69,9 @@ def create_entities(db_session: Session):
         random_worker = db_session.query(Worker).order_by(func.random()).first()
         random_customer = db_session.query(Customer).order_by(func.random()).first()
 
-        common_trade_point = db_session.query(TradePoint).order_by(func.random()).first()
+        common_trade_point = (
+            db_session.query(TradePoint).order_by(func.random()).first()
+        )
 
         random_order = db_session.query(Order).order_by(func.random()).first()
 
@@ -68,6 +85,7 @@ def create_entities(db_session: Session):
         db_session.add(visit)
 
     db_session.commit()
+
 
 if __name__ == "__main__":
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

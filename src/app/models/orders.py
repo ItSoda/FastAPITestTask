@@ -1,7 +1,9 @@
 from datetime import datetime
-from sqlalchemy import  Column, Integer, ForeignKey, DateTime, Enum
-from sqlalchemy.orm import relationship
 from enum import Enum as PythonEnum
+
+from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer
+from sqlalchemy.orm import relationship
+
 from src.database import Base
 
 
@@ -23,7 +25,7 @@ class Order(Base):
     author_id = Column(Integer, ForeignKey("customer.id"), nullable=False)
     status = Column(Enum(OrderStatus))
     worker_id = Column(Integer, ForeignKey("worker.id"), nullable=False)
-    
+
     destination = relationship("TradePoint", back_populates="orders")
     author = relationship("Customer", back_populates="orders")
     worker = relationship("Worker", back_populates="orders")
