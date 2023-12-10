@@ -1,13 +1,14 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException
-
+from datetime import datetime
 from .models.workers import Worker
 from .models.customers import Customer
 from .models.orders import Order
 from .dependencies import get_db
 from sqlalchemy.orm import Session
 from .models.trade_point import TradePoint
-from .schemas import OrderList, OrderUpdate, OrderCreate, OrderUpdateStatus, TradePointList, OrderPartialUpdate
+from .models.visits import Visit
+from .schemas import OrderList, OrderUpdate, OrderCreate, OrderUpdateStatus, TradePointList, OrderPartialUpdate, VisitCreate, VisitPartialUpdate
 
 router_trade_point = APIRouter(
     prefix="/trade_point",
@@ -58,7 +59,7 @@ def order_list(phone: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=f"There is the exception {str(e)}")
 
 
-@router_order.post("/create")
+@router_order.post("/create_order")
 def order_create(order_data: OrderCreate, phone: str, db: Session = Depends(get_db)):
     try:
         customer = db.query(Customer).filter(Customer.phone == phone).first()
@@ -66,15 +67,18 @@ def order_create(order_data: OrderCreate, phone: str, db: Session = Depends(get_
 
         if customer:
             trade_point = db.query(TradePoint).join(Customer).join(Worker).filter(Customer.id == customer.id, Worker.id == worker.id).first()
-            order = Order(author_id=customer.id, destination_id=order_data.destination_id, status=order_data.status, worker_id=order_data.worker_id)
-            db.add(order)
-            db.commit()
-            db.refresh(order)
-            return {
-                "status": 201,
-                "data": order,
-                "detail": "Order created successfully"
-            }
+            if trade_point:
+                order = Order(author_id=customer.id, destination_id=order_data.destination_id, status=order_data.status, worker_id=order_data.worker_id)
+                db.add(order)
+                db.commit()
+                db.refresh(order)
+                return {
+                    "status": 201,
+                    "data": order,
+                    "detail": "Order created successfully"
+                }
+            else:
+                raise HTTPException(status_code=404, detail="TradePoint not found")
         else:
             raise HTTPException(status_code=404, detail="Customer not found")
     except HTTPException as e:
@@ -112,6 +116,7 @@ def order_update(order_data: OrderUpdate, order_id: int, phone: str, db: Session
         raise HTTPException(status_code=500, detail=f"There is the exception {str(e)}")
 
 
+# TASK 4 PUT ORDER STATUS
 @router_order.put("/update_order_status/{order_id}")
 def order_update_status(order_data: OrderUpdateStatus, order_id: int, phone: str, db: Session = Depends(get_db)):
     try:
@@ -136,7 +141,7 @@ def order_update_status(order_data: OrderUpdateStatus, order_id: int, phone: str
         raise HTTPException(status_code=500, detail=f"There is the exception {str(e)}")
 
 
-@router_order.patch("/update/{order_id}")
+@router_order.patch("/partial_update/{order_id}")
 def order_patch(phone: str, order_id: int, order_data: OrderPartialUpdate, db: Session = Depends(get_db)):
     try:
         order = db.query(Order).get(order_id)
@@ -171,8 +176,6 @@ def order_patch(phone: str, order_id: int, order_data: OrderPartialUpdate, db: S
             }
         else:
             raise HTTPException(status_code=404, detail="Order not found")
-    except HTTPException as e:
-        raise e
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"There is the exception {str(e)}")
 
@@ -194,4 +197,139 @@ def order_delete(order_id: int, phone: str, db: Session = Depends(get_db)):
             raise HTTPException(status_code=404, detail="Customer not found")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"There is the exception {str(e)}")
+
+
+# CRUD VISITS TASK 4
+router_visit = APIRouter(
+    prefix="/visit",
+    tags=["Visit"]
+    )
+
+@router_visit.get("/")
+def visit_list(phone: str, db: Session = Depends(get_db)):
+    try:
+        customer = db.query(Customer).filter(Customer.phone == phone).first()
+
+        if not customer:
+            raise HTTPException(status_code=404, detail="Customer not found")
+        
+        visits = db.query(Visit).join(Customer).filter(Customer.phone == phone).all()
+        return {
+            "status": 200,
+            "data": visits,
+            "detail": "Visits list successfully"
+            }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"There is the exception {str(e)}")
+
+
+def validate_visit(customer, visit_data, db):
+    if not customer:
+        raise HTTPException(status_code=404, detail="Customer not found")
+    if customer.id != visit_data.author_id:
+        raise HTTPException(status_code=404, detail="Customer is not Author")
+
+    if customer.trade_point_id != visit_data.destination_id:
+        raise HTTPException(status_code=404, detail="TradePoint not found")
+        
+    order = db.query(Order).filter(Order.id == visit_data.order_id).first()
+    if order.end_datetime < datetime.utcnow():
+        raise HTTPException(status_code=404, detail="Order time is end")
+        
+    visit = db.query(Visit).join(Order).filter(Order.id == order.id).first()
+    if visit:
+        raise HTTPException(status_code=404, detail="Visit with Order has already been created")
+        
+    if order.worker_id != visit_data.worker_id:
+        raise HTTPException(status_code=404, detail="The wrong worker")
+    
+    return True
+
+
+@router_visit.post("/create_visit")
+def visit_create(phone: str, visit_data: VisitCreate, db: Session = Depends(get_db)):
+    customer = db.query(Customer).filter(Customer.phone == phone).first()
+
+    if validate_visit(customer=customer, visit_data=visit_data, db=db):
+        visit = Visit(**visit_data.dict())
+        db.add(visit)
+        db.commit()
+        db.refresh(visit)
+        return {
+            "status": 201,
+            "data": visit,
+            "detail": "Visit create successfully"
+        }
+
+
+@router_visit.put("/update_visit/{visit_id}")
+def visit_update(phone: str, visit_id: int, visit_data: VisitCreate, db: Session = Depends(get_db)):
+    customer = db.query(Customer).filter(Customer.phone == phone).first()
+    visit = db.query(Visit).filter(Visit.id == visit_id).first()
+
+    if validate_visit(customer=customer, visit_data=visit_data, db=db):
+        for key, value in visit_data.dict().items():
+            setattr(visit, key, value)
+        db.commit()
+        db.refresh(visit)
+        return {
+            "status": 200,
+            "data": visit,
+            "detail": "Visit update successfully"
+        }
+
+
+@router_visit.patch("/partial_update_visit/{visit_id}")
+def visit_partial_update(phone: str, visit_id: int, visit_data: VisitPartialUpdate, db: Session = Depends(get_db)):
+    customer = db.query(Customer).filter(Customer.phone == phone).first()
+    visit = db.query(Visit).filter(Visit.id == visit_id).first()
+
+    if visit:
+        if visit_data.destination_id is not None:
+            if customer.trade_point_id == visit_data.destination_id:
+                visit.destination_id = visit_data.destination_id
+
+        if visit_data.worker_id is not None:
+            worker = db.query(Worker).filter(Worker.id == visit_data.worker_id).first()
+            order = db.query(Order).join(Worker).filter(Worker.id == worker.id).first()
+            if worker.trade_point_id == customer.trade_point_id:
+                if order.id == visit.order_id:
+                    visit.worker_id = visit_data.worker_id
+            else:
+                raise HTTPException(status_code=404, detail="Worker is bad")
+        if visit_data.order_id is not None:
+            visit_test = db.query(Visit).join(Order).filter(Order.id == visit_data.order_id).first()
+            if visit_test:
+                raise HTTPException(status_code=404, detail="Visit with Order has already been created")
+            visit.order_id = visit_data.order_id
+        db.commit()
+        db.refresh(visit)
+
+        return {
+            "status": 200,
+            "data": visit,
+            "detail": "Order partial update successfully"
+        }
+    else:
+        raise HTTPException(status_code=404, detail="Visit not found")
+    
+
+@router_visit.delete("/delete_visit/{visit_id}")
+def visit_delete(visit_id: int, phone: str, db: Session = Depends(get_db)):
+    try:
+        customer = db.query(Customer).filter(Customer.phone == phone).first()
+        if customer:
+            visit = db.query(Visit).get(visit_id)
+            db.delete(visit)
+            db.commit()
+            return {
+                "status": 200,
+                "data": [],
+                "detail": "Visit delete successfully"
+                }
+        else:
+            raise HTTPException(status_code=404, detail="Customer not found")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"There is the exception {str(e)}")
+
 

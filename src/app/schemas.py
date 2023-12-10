@@ -52,3 +52,15 @@ class TradePointList(BaseModel):
     name: str
     workers: str
     customers: str
+
+
+class VisitCreate(BaseModel):
+    destination_id: int
+    author_id: int
+    order_id: int
+    worker_id: int
+
+class VisitPartialUpdate(BaseModel):
+    destination_id: Optional[int] = None
+    order_id: Optional[int] = None
+    worker_id: Optional[int] = None
