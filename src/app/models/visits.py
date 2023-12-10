@@ -7,6 +7,8 @@ from src.database import Base
 
 
 class Visit(Base):
+    """Table for Visit"""
+    
     __tablename__ = "visit"
 
     id = Column(Integer, primary_key=True, index=True)

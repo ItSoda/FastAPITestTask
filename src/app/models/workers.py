@@ -5,6 +5,8 @@ from src.database import Base
 
 
 class Worker(Base):
+    """Table for worker"""
+    
     __tablename__ = "worker"
 
     id = Column(Integer, primary_key=True, index=True)
