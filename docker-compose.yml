@@ -5,10 +5,8 @@ services:
     image: mysql:latest
     container_name: mysql_fastapi
     restart: always
-    environment:
-      - MYSQL_DATABASE=FastAPI_DB
-      - MYSQL_ROOT_USER=itsoda
-      - MYSQL_ROOT_PASSWORD=test_pass
+    env_file:
+      - docker-compose.env
     volumes:
       - mysql_data:/var/lib/mysql/
 
@@ -24,7 +22,7 @@ services:
         poetry run python scripts.py &&
         poetry run gunicorn src.main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind=0.0.0.0:8000 
     environment:
-      - DOCKER_IS_RUN=True
+      - DOCKER_CONTAINER=true
     ports:
       - "8000:8000" 
     depends_on:

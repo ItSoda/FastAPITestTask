@@ -1,14 +1,14 @@
 from datetime import datetime
 from enum import Enum as PythonEnum
 
-from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer
-from sqlalchemy.orm import relationship
+from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.database import Base
 
 
 class OrderStatus(str, PythonEnum):
-    """Table for Order Status"""
+    """Table for order status"""
 
     started = "started"
     ended = "ended"
@@ -22,13 +22,15 @@ class Order(Base):
 
     __tablename__ = "order"
 
-    id = Column(Integer, primary_key=True, index=True)
-    created_datetime = Column(DateTime, default=datetime.utcnow)
-    end_datetime = Column(DateTime)
-    destination_id = Column(Integer, ForeignKey("trade_point.id"), nullable=False)
-    author_id = Column(Integer, ForeignKey("customer.id"), nullable=False)
-    status = Column(Enum(OrderStatus))
-    worker_id = Column(Integer, ForeignKey("worker.id"), nullable=False)
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    created_datetime: Mapped[datetime] = mapped_column(default=datetime.utcnow)
+    end_datetime: Mapped[datetime] = mapped_column(default=None)
+    destination_id: Mapped[int] = mapped_column(
+        ForeignKey("trade_point.id"), nullable=False
+    )
+    author_id: Mapped[int] = mapped_column(ForeignKey("customer.id"), nullable=False)
+    status: Mapped[OrderStatus]
+    worker_id: Mapped[int] = mapped_column(ForeignKey("worker.id"), nullable=False)
 
     destination = relationship("TradePoint", back_populates="orders")
     author = relationship("Customer", back_populates="orders")
