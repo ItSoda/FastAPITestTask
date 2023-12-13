@@ -1,20 +1,13 @@
-import os
+from decouple import Config
 
-from dotenv import load_dotenv
+config = Config(".env")
 
-load_dotenv()
+if config.get("DOCKER_CONTAINER", default=None):
+    config = Config("itsoda/docker-compose.env")
 
 # PARAMETRS FOR DB
-DB_NAME = os.environ.get("DB_NAME")
-DB_USER = os.environ.get("DB_USER")
-DB_PASSWORD = os.environ.get("DB_PASSWORD")
-DB_HOST = os.environ.get("DB_HOST")
-DB_PORT = os.environ.get("DB_PORT")
-
-
-if os.environ.get("DOCKER_IS_RUN"):
-    DB_HOST = "mysql_fastapi"
-    DB_USER = "itsoda"
-    DB_PASSWORD = "test_pass"
-    DB_NAME = "FastAPI_DB"
-    DB_PORT = "3306"
+DB_HOST = config.get("MYSQL_HOST", default="localhost")
+DB_USER = config.get("MYSQL_ROOT_USER", default="root")
+DB_PASSWORD = config.get("MYSQL_ROOT_PASSWORD", default="nik140406")
+DB_NAME = config.get("MYSQL_DATABASE", default="FastAPI_DB")
+DB_PORT = config.get("MYSQL_PORT", default="3306")

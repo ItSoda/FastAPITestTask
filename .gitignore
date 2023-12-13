@@ -51,4 +51,6 @@ htmlcov
 docs/_build/
 
 .env
+.test.env
+docker-compose.env
 .flake8
