@@ -1,14 +1,16 @@
 from sqlalchemy import Column, Integer, String
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.database import Base
 
 
 class TradePoint(Base):
+    """Table for TradePoint"""
+
     __tablename__ = "trade_point"
 
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(255), nullable=False)
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
 
     workers = relationship("Worker", back_populates="trade_point")
     customers = relationship("Customer", back_populates="trade_point")

@@ -5,6 +5,7 @@ from typing import Optional
 from pydantic import BaseModel
 
 
+# Схемы для заказов
 class OrderType(str, Enum):
     started = "started"
     ended = "ended"
@@ -38,6 +39,7 @@ class OrderCreate(BaseModel):
     status: OrderType
 
 
+# Схемы для посещений
 class VisitCreate(BaseModel):
     destination_id: int
     author_id: int
@@ -51,6 +53,7 @@ class VisitPartialUpdate(BaseModel):
     worker_id: Optional[int] = None
 
 
+# Схемы для работников
 class WorkerCreate(BaseModel):
     name: str
     phone: str
@@ -63,6 +66,7 @@ class WorkerPartialUpdate(BaseModel):
     trade_point_id: Optional[int] = None
 
 
+# Схемы для заказчиков
 class CustomerCreate(BaseModel):
     name: str
     phone: str
@@ -75,6 +79,7 @@ class CustomerPartialUpdate(BaseModel):
     trade_point_id: Optional[int] = None
 
 
+# Схемы для торговых точек
 class TradePointCreate(BaseModel):
     name: str
 

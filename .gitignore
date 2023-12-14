@@ -50,6 +50,7 @@ htmlcov
 # Sphinx documentation
 docs/_build/
 
-.test.env
 .env
-.docker-compose.env
+.test.env
+docker-compose.env
+.flake8
