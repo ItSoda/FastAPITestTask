@@ -1,20 +1,18 @@
+from decouple import RepositoryEnv, Config
 import os
 
-from dotenv import load_dotenv
+docker = os.environ.get("DOCKER_CONTAINER")
 
-load_dotenv()
+env_file = ".env"
+
+if docker:
+    env_file = "docker-compose.env"
+config = Config(RepositoryEnv(env_file))
 
 # PARAMETRS FOR DB
-DB_NAME = os.environ.get("DB_NAME")
-DB_USER = os.environ.get("DB_USER")
-DB_PASSWORD = os.environ.get("DB_PASSWORD")
-DB_HOST = os.environ.get("DB_HOST")
-DB_PORT = os.environ.get("DB_PORT")
-
-
-if os.environ.get("DOCKER_IS_RUN"):
-    DB_HOST = "mysql_fastapi"
-    DB_USER = "itsoda"
-    DB_PASSWORD = "test_pass"
-    DB_NAME = "FastAPI_DB"
-    DB_PORT = "3306"
+print(config.get("MYSQL_HOST", default="localhosttt"))
+DB_HOST = config.get("MYSQL_HOST", default="localhost")
+DB_USER = config.get("MYSQL_ROOT_USER", default="root")
+DB_PASSWORD = config.get("MYSQL_ROOT_PASSWORD", default="nik140406")
+DB_NAME = config.get("MYSQL_DATABASE", default="FastAPI_DB")
+DB_PORT = config.get("MYSQL_PORT", default="3306")
