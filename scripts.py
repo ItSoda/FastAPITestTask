@@ -15,7 +15,7 @@ fake = Faker()
 
 
 def create_entities(db_session: Session):
-    for _ in range(1000):
+    for _ in range(10):
         trade_point = TradePoint(name=fake.name())
         db_session.add(trade_point)
 
