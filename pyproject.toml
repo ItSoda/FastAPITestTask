@@ -17,6 +17,7 @@ gunicorn = "^21.2.0"
 pytest = "^7.4.3"
 httpx = "^0.25.2"
 python-decouple = "^3.8"
+pymysql = "^1.1.0"
 
 
 [tool.poetry.group.dev.dependencies]
