@@ -3,7 +3,7 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from .dependencies import get_db
+from src.database import get_db
 from .models.customers import Customer
 from .models.orders import Order
 from .models.trade_point import TradePoint
