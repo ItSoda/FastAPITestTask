@@ -1,4 +1,4 @@
-version: '3.8'
+version: '2'
 
 services:
   mysql:
@@ -10,9 +10,16 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql/
 
+  redis: 
+    image: redis:latest
+    container_name: redis-fastapi
+    restart: always
+    ports:
+      - "6379:6379"
+
   api:
     build: .
-    image: fastapi
+    image: cityheroes-api
     command:
       - sh
       - -c
@@ -24,14 +31,51 @@ services:
     env_file:
       - docker-compose.env
     environment:
-      - DOCKER_CONTAINER=true
+      - DOCKER_CONTAINER=True
+      - VIRTUAL_HOST=fast-api.site
+      - LETSENCRYPT_HOST=fast-api.site
     ports:
       - "8000:8000" 
     depends_on:
       - mysql
+      - redis 
     volumes:
       - .:/itsoda
+      - static_volume:/itsoda/static
+      - media_volume:/itsoda/media
     container_name: fastapi
+  nginx:
+    build: 
+      dockerfile: ./Dockerfile
+      context: ./docker/nginx/
+    container_name: nginx_fastapi
+    image: nginx_fastapi
+    volumes:
+      - static_volume:/itsoda/static
+      - media_volume:/itsoda/media
+      - certs:/etc/nginx/certs
+      - vhost:/etc/nginx/vhost.d
+      - html:/usr/share/nginx/html
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    depends_on:
+      - api
+    ports:
+      - "80:80"
+      - "443:443"
+  acme_companion:
+    image: nginxproxy/acme-companion:2.2
+    container_name: fastapi_acme_companion
+    volumes_from:
+      - nginx
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - acme:/etc/acme.sh
 
 volumes:
   mysql_data: null
+  static_volume:
+  media_volume:
+  certs:
+  vhost:
+  html:
+  acme:
